@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs", "bash", "curl", "chromium"]
+
+[phases.install]
+cmds = ["npm ci --omit=dev"]
+
+[phases.start]
+cmd = "node index.js"
+
+[variables]
+PORT = "3000"

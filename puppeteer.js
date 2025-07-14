@@ -1,4 +1,4 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require('puppeteer'); // ✅ 載入 npm 套件
 const cheerio = require("cheerio");
 
 module.exports = async function runPuppeteer(url) {

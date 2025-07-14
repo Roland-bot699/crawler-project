@@ -1,18 +1,14 @@
 const express = require("express");
-const app = express();
 const cors = require("cors");
 const searchRoute = require("./routes/search");
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
-app.use("/search", searchRoute); // 已處理 /search 路由
+app.use("/search", searchRoute);
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-app.get('/search', async (req, res) => {
-  const keyword = req.query.keyword;
-  // 執行 puppeteer 爬蟲流程，回傳 JSON 結果
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });

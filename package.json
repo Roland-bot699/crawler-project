@@ -3,23 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Roland-bot699/crawler-project.git"
+  "engines": {
+    "node": "22.x"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Roland-bot699/crawler-project/issues"
-  },
-  "homepage": "https://github.com/Roland-bot699/crawler-project#readme",
-  "description": "",
   "dependencies": {
-  "express": "^4.18.2",
-  "puppeteer": "^24.12.1",
-  "cors": "^2.8.5"
-}
+    "express": "^4.18.2",
+    "puppeteer": "^21.3.8",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5"
+  }
 }

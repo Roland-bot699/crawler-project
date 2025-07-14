@@ -2,18 +2,20 @@ const express = require("express");
 const router = express.Router();
 const runPuppeteer = require("../puppeteer");
 
-router.get("/", async (req, res) => {
-  const keyword = req.query.keyword;
-  // 爬蟲邏輯寫在這
-  const browser = await puppeteer.launch({ headless: "new" });
-  const page = await browser.newPage();
-  await page.goto(`https://www.sex100.co/search?keyword=${encodeURIComponent(keyword)}`);
-  await page.waitForTimeout(3000); // 等待頁面載入
+router.post("/", async (req, res) => {
+  const { url } = req.body;
 
-  const html = await page.content();
-  await browser.close();
+  if (!url || !url.startsWith("http")) {
+    return res.status(400).json({ error: "請提供正確的 URL。" });
+  }
 
-  res.json({ html }); // 你可以改成回傳解析後的資料
+  try {
+    const result = await runPuppeteer(url);
+    res.json(result);
+  } catch (err) {
+    console.error("Puppeteer 執行錯誤：", err.message);
+    res.status(500).json({ error: "伺服器錯誤，無法完成爬蟲作業。" });
+  }
 });
 
 module.exports = router;

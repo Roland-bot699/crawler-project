@@ -1,5 +1,8 @@
 [phases.setup]
 nixPkgs = ["nodejs", "chromium"]
 
-[start]
-cmd = "node index.js"
+[phases.build]
+cmds = ["npm install"]
+
+[phases.start]
+cmd = "npm start"

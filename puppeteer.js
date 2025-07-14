@@ -1,37 +1,24 @@
-const puppeteer = require("puppeteer");
-const cheerio = require("cheerio");
+const puppeteer = require("puppeteer-core");
+const browserFetcher = puppeteer.createBrowserFetcher();
 
-module.exports = async function runPuppeteer(url) {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  });
+const chromiumPath = '/usr/bin/chromium-browser'; // 常見於 Railway Nixpacks 的路徑
 
-  const page = await browser.newPage();
-  await page.goto(url, { waitUntil: "networkidle2" });
-  await page.waitForTimeout(1500);
+const browser = await puppeteer.launch({
+  headless: false,  // ✅ 模擬真人，建議先關掉 headless
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-blink-features=AutomationControlled',
+  ],
+});
+const page = await browser.newPage();
 
-  const html = await page.content();
-  const $ = cheerio.load(html);
+// ✅ 模擬真實瀏覽器
+await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
 
-  const name = $("h1.title").text().trim();
-  const area = $(".infotext:contains('服務地區')").next().text().trim();
-  const price = $(".infotext:contains('價格')").next().text().trim();
-  const services = $(".infotext:contains('服務內容')").next().text().trim();
+// ✅ 模擬從首頁點入（可繞過 Cloudflare challenge）
+await page.goto('https://www.sex100.co/', { waitUntil: 'networkidle2' });
+await page.waitForTimeout(3000);  // 等待 challenge 通過
 
-  const images = [];
-  $(".swiper-wrapper img").each((i, el) => {
-    const src = $(el).attr("src");
-    if (src) images.push(src);
-  });
-
-  await browser.close();
-
-  return {
-    name,
-    area,
-    price,
-    services,
-    images
-  };
-};
+// ✅ 接著再開關鍵字搜尋頁
+await page.goto(`https://www.sex100.co/search?keyword=${encodeURIComponent(keyword)}`, { waitUntil: 'networkidle2' });

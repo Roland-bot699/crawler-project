@@ -11,3 +11,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+app.get('/search', async (req, res) => {
+  const keyword = req.query.keyword;
+  // 執行 puppeteer 爬蟲流程，回傳 JSON 結果
+});

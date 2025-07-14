@@ -1,20 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const runPuppeteer = require("../puppeteer");
+const runPuppeteer = require("../puppeteer"); // 爬蟲模組
 
 router.post("/", async (req, res) => {
-  const { url } = req.body;
-
-  if (!url || !url.startsWith("http")) {
-    return res.status(400).json({ error: "請提供正確的 URL。" });
+  const keyword = req.body.keyword;
+  if (!keyword) {
+    return res.status(400).json({ error: "Missing 'keyword' in request body" });
   }
 
   try {
+    const url = `https://www.sex100.co/${encodeURIComponent(keyword)}`;
     const result = await runPuppeteer(url);
     res.json(result);
   } catch (err) {
-    console.error("Puppeteer 執行錯誤：", err.message);
-    res.status(500).json({ error: "伺服器錯誤，無法完成爬蟲作業。" });
+    console.error("Puppeteer error:", err);
+    res.status(500).json({ error: "爬蟲執行失敗" });
   }
 });
 

@@ -5,7 +5,7 @@ const searchRoute = require("./routes/search");
 
 app.use(cors());
 app.use(express.json());
-app.use("/search", searchRoute);
+app.use("/search", searchRoute); // 已處理 /search 路由
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

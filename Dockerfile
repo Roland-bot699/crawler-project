@@ -1,6 +1,6 @@
 FROM node:20
 
-# 安裝 Puppeteer 相依的套件（Chrome 依賴）
+# 安裝 puppeteer 所需依賴（注意要安裝 chromium）
 RUN apt-get update && apt-get install -y \
   chromium \
   fonts-liberation \
@@ -11,9 +11,10 @@ RUN apt-get update && apt-get install -y \
   libxshmfence1 \
   libxrandr2 \
   libgtk-3-0 \
-  --no-install-recommends && rm -rf /var/lib/apt/lists/*
+  --no-install-recommends && \
+  rm -rf /var/lib/apt/lists/*
 
-# 設定環境變數（讓 Puppeteer 找到 Chrome）
+# 設定 puppeteer 尋找的 chromium 執行路徑
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app

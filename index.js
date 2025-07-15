@@ -1,19 +1,15 @@
-// 引入必要套件
-const express = require("express");
-const cors = require("cors");
-const searchRoute = require("./routes/search"); // search 路由模組
-
+const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-// 中介層：跨來源與 JSON 處理
-app.use(cors());
-app.use(express.json());
+app.get('/search', async (req, res) => {
+  const keyword = req.query.keyword;
+  if (!keyword) return res.status(400).send('Missing keyword');
 
-// 路由註冊：當收到 /search 請求時，交給 searchRoute 處理
-app.use("/search", searchRoute);
+  // 呼叫 puppeteer 執行爬蟲操作（省略）
+  res.send(`You searched for ${keyword}`);
+});
 
-// 啟動伺服器
-app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });

@@ -48,8 +48,12 @@ await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
 
     const html = await page.content();
     const $ = cheerio.load(html);
-    const profileLink = $('.col-6.col-md-4.col-xl-3 a').first().attr('href');
-
+    const profileLink = $('a.w-100.d-block').attr('href');
+    if (!profileLink) {
+    await browser.close();
+    return res.status(404).send('找不到符合的人員頁面');
+}
+const profileUrl = `https://www.sex100.co/${profileLink}`;
     const profileUrl = `https://www.sex100.co/${profileLink}`;
     await page.goto(profileUrl, { waitUntil: 'networkidle2' });
 

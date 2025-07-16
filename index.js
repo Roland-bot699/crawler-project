@@ -54,7 +54,6 @@ await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
     return res.status(404).send('找不到符合的人員頁面');
 }
 const profileUrl = `https://www.sex100.co/${profileLink}`;
-    const profileUrl = `https://www.sex100.co/${profileLink}`;
     await page.goto(profileUrl, { waitUntil: 'networkidle2' });
 
     const profileHTML = await page.content();

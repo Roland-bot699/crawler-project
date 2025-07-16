@@ -32,22 +32,19 @@ app.get('/search', async (req, res) => {
 
   try {
     console.log('Start processing');
-    console.log('Query:', req.query);
-    const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
-    console.log('Search URL:', searchUrl);
+console.log('Query:', req.query);
 
-	
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-	executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-    });
+const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
+console.log('Search URL:', searchUrl);
 
-    const page = await browser.newPage();
+const browser = await puppeteer.launch({
+  headless: 'new',
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+});
 
-    // 根據 cityCode 與 keyword 組成搜尋網址
-    const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
-    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
+const page = await browser.newPage();
+await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
 
     const html = await page.content();
     const $ = cheerio.load(html);

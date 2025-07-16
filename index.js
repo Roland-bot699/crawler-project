@@ -25,35 +25,38 @@ app.get('/search', async (req, res) => {
   if (!city || !keyword) {
     return res.status(400).send('請同時提供 city 和 keyword');
   }
+
   const cityCode = cityMap[city];
   if (!cityCode) {
     return res.status(400).send('不支援的城市，請使用：' + Object.keys(cityMap).join('、'));
   }
 
+  const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
+  console.log('🔍 搜尋網址：', searchUrl);
+
   try {
-    console.log('Start processing');
-console.log('Query:', req.query);
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+    });
 
-const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
-console.log('Search URL:', searchUrl);
-
-const browser = await puppeteer.launch({
-  headless: 'new',
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-});
-
-const page = await browser.newPage();
-await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
+    const page = await browser.newPage();
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 0 });
 
     const html = await page.content();
     const $ = cheerio.load(html);
+
+    // 抓第一個人員頁面連結
     const profileLink = $('a.w-100.d-block').attr('href');
+    console.log('👤 profileLink:', profileLink);
+
     if (!profileLink) {
-    await browser.close();
-    return res.status(404).send('找不到符合的人員頁面');
-}
-const profileUrl = `https://www.sex100.co/${profileLink}`;
+      await browser.close();
+      return res.status(404).send('找不到符合的人員頁面');
+    }
+
+    const profileUrl = `https://www.sex100.co/${profileLink}`;
     await page.goto(profileUrl, { waitUntil: 'networkidle2' });
 
     const profileHTML = await page.content();
@@ -66,7 +69,11 @@ const profileUrl = `https://www.sex100.co/${profileLink}`;
 
     await browser.close();
 
-    const summary = `✅ 姓名：${name}\n📍服務區域：${area}\n💆‍♀️服務項目：${service}\n💰價格：${price}\n🔗連結：${profileUrl}`;
+    const summary = `✅ 姓名：${name}
+📍服務區域：${area}
+💆‍♀️服務項目：${service}
+💰價格：${price}
+🔗連結：${profileUrl}`;
     res.send(summary);
   } catch (error) {
     console.error('Puppeteer Error:', error);

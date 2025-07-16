@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 城市名稱對應對方網站的 city 編號
 const cityMap = {
   '台北': 1,
   '新北': 2,
@@ -33,7 +32,9 @@ app.get('/search', async (req, res) => {
   }
 
   const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
-  console.log('🔍 查詢網址:', searchUrl);
+  console.log('✅ Start processing');
+  console.log('🟡 Query:', req.query);
+  console.log('🔍 Search URL:', searchUrl);
 
   try {
     const browser = await puppeteer.launch({
@@ -48,9 +49,9 @@ app.get('/search', async (req, res) => {
     const html = await page.content();
     const $ = cheerio.load(html);
 
-    // ✅ 調整選擇器以正確抓到 profileLink
-    const profileLink = $('.col-6.col-md-4.col-xl-3 a').first().attr('href');
-    console.log('👤 Profile Link:', profileLink);
+    // ✅ 更穩定的選擇器
+    const profileLink = $('a.w-100.d-block').first().attr('href');
+    console.log('👤 profileLink:', profileLink);
 
     if (!profileLink) {
       await browser.close();

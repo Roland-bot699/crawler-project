@@ -22,6 +22,7 @@ const cityMap = {
 
 app.get('/search', async (req, res) => {
   const { city, keyword } = req.query;
+
   if (!city || !keyword) {
     return res.status(400).send('❌ 請同時提供 city 和 keyword');
   }
@@ -31,13 +32,10 @@ app.get('/search', async (req, res) => {
     return res.status(400).send('❌ 不支援的城市，請使用：' + Object.keys(cityMap).join('、'));
   }
 
+  const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
+  console.log('🔍 查詢網址:', searchUrl);
+
   try {
-    console.log('✅ Start processing');
-    console.log('📥 Query:', req.query);
-
-    const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
-    console.log('🔍 Search URL:', searchUrl);
-
     const browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -45,14 +43,14 @@ app.get('/search', async (req, res) => {
     });
 
     const page = await browser.newPage();
-    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 0 });
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
 
     const html = await page.content();
     const $ = cheerio.load(html);
 
-    // ✅ 使用較穩定的選擇器
-    const profileLink = $('a.w-100.d-block').attr('href');
-    console.log('🔗 profileLink:', profileLink);
+    // ✅ 調整選擇器以正確抓到 profileLink
+    const profileLink = $('.col-6.col-md-4.col-xl-3 a').first().attr('href');
+    console.log('👤 Profile Link:', profileLink);
 
     if (!profileLink) {
       await browser.close();

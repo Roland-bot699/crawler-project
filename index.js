@@ -31,6 +31,12 @@ app.get('/search', async (req, res) => {
   }
 
   try {
+    console.log('Start processing');
+    console.log('Query:', req.query);
+    const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
+    console.log('Search URL:', searchUrl);
+
+	
     const browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],

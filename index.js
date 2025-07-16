@@ -23,18 +23,21 @@ const cityMap = {
 app.get('/search', async (req, res) => {
   const { city, keyword } = req.query;
   if (!city || !keyword) {
-    return res.status(400).send('請同時提供 city 和 keyword');
+    return res.status(400).send('❌ 請同時提供 city 和 keyword');
   }
 
   const cityCode = cityMap[city];
   if (!cityCode) {
-    return res.status(400).send('不支援的城市，請使用：' + Object.keys(cityMap).join('、'));
+    return res.status(400).send('❌ 不支援的城市，請使用：' + Object.keys(cityMap).join('、'));
   }
 
-  const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
-  console.log('🔍 搜尋網址：', searchUrl);
-
   try {
+    console.log('✅ Start processing');
+    console.log('📥 Query:', req.query);
+
+    const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
+    console.log('🔍 Search URL:', searchUrl);
+
     const browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -47,9 +50,9 @@ app.get('/search', async (req, res) => {
     const html = await page.content();
     const $ = cheerio.load(html);
 
-    // 抓第一個人員頁面連結
+    // ✅ 使用較穩定的選擇器
     const profileLink = $('a.w-100.d-block').attr('href');
-    console.log('👤 profileLink:', profileLink);
+    console.log('🔗 profileLink:', profileLink);
 
     if (!profileLink) {
       await browser.close();
@@ -69,19 +72,15 @@ app.get('/search', async (req, res) => {
 
     await browser.close();
 
-    const summary = `✅ 姓名：${name}
-📍服務區域：${area}
-💆‍♀️服務項目：${service}
-💰價格：${price}
-🔗連結：${profileUrl}`;
+    const summary = `✅ 姓名：${name}\n📍服務區域：${area}\n💆‍♀️服務項目：${service}\n💰價格：${price}\n🔗連結：${profileUrl}`;
     res.send(summary);
   } catch (error) {
-    console.error('Puppeteer Error:', error);
+    console.error('🚨 Puppeteer Error:', error);
     res.status(500).send('Server error');
   }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });

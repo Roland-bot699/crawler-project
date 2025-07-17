@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 城市名稱對應對方網站的 city 編號
 const cityMap = {
   '台北': 1,
   '新北': 2,
@@ -43,22 +42,27 @@ app.get('/search', async (req, res) => {
 
     const page = await browser.newPage();
 
-    // 🔎 直接前往搜尋結果頁
+    // 打開搜尋頁
     const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
     console.log('🔗 Search URL:', searchUrl);
+
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 0 });
+
+    // 等待第一筆搜尋結果載入
+    await page.waitForSelector('.col-6.col-md-4.col-xl-3 a, .item_card a', { timeout: 10000 });
 
     const searchHtml = await page.content();
     const $ = cheerio.load(searchHtml);
 
-    // 嘗試抓第一筆 profile 的連結
-    const profileLink = $('.col-6.col-md-4.col-xl-3 a').first().attr('href')
-                     || $('.item_card a').first().attr('href');
+    const profileLink =
+      $('.col-6.col-md-4.col-xl-3 a').first().attr('href') ||
+      $('.item_card a').first().attr('href');
+
     console.log('🔗 profileLink:', profileLink);
 
     if (!profileLink) {
       await browser.close();
-      return res.status(404).send('找不到符合的人員頁面');
+      return res.status(404).send('❌ 找不到符合的人員頁面');
     }
 
     const profileUrl = `https://www.sex100.co${profileLink}`;
@@ -78,7 +82,7 @@ app.get('/search', async (req, res) => {
     res.send(summary);
   } catch (error) {
     console.error('🚨 Puppeteer Error:', error);
-    res.status(500).send('Server error');
+    res.status(500).send('❌ Server error');
   }
 });
 

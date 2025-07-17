@@ -54,9 +54,10 @@ app.get('/search', async (req, res) => {
     // 進入搜尋結果頁面後擷取資料
     const html = await page.content();
     const $ = cheerio.load(html);
-    const profileLink = $('a.w-100.d-block').attr('href');
-
-    console.log('🔗 profileLink:', profileLink);
+    // 嘗試從搜尋結果抓第一筆 profile 連結
+       const profileLink = $('.col-6.col-md-4.col-xl-3 a').first().attr('href') 
+                 || $('.item_card a').first().attr('href');
+       console.log('🔗 profileLink:', profileLink);
 
     if (!profileLink) {
       await browser.close();
@@ -64,7 +65,14 @@ app.get('/search', async (req, res) => {
     }
 
     const profileUrl = `https://www.sex100.co${profileLink}`;
-    await page.goto(profileUrl, { waitUntil: 'networkidle2' });
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 0 });
+
+    // ⬇️ 在這裡插入 screenshot，用來確認實際載入結果
+    await page.screenshot({ path: 'search_result.png' });
+
+    // 然後再繼續解析 HTML
+    const html = await page.content();
+    const $ = cheerio.load(html);
 
     const profileHTML = await page.content();
     const $$ = cheerio.load(profileHTML);

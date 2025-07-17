@@ -9,20 +9,31 @@ app.use(express.json());
 
 // 城市名稱對應對方網站的 city 編號
 const cityMap = {
-  '台北': 1, '新北': 2, '桃園': 3, '台中': 4,
-  '台南': 5, '高雄': 6, '新竹': 7, '台東': 10, '花蓮': 11,
+  '台北': 1,
+  '新北': 2,
+  '桃園': 3,
+  '台中': 4,
+  '台南': 5,
+  '高雄': 6,
+  '新竹': 7,
+  '台東': 10,
+  '花蓮': 11,
 };
 
 app.get('/search', async (req, res) => {
   const { city, keyword } = req.query;
-  if (!city || !keyword) return res.status(400).send('請同時提供 city 和 keyword');
+  if (!city || !keyword) {
+    return res.status(400).send('❌ 請同時提供 city 和 keyword');
+  }
 
   const cityCode = cityMap[city];
-  if (!cityCode) return res.status(400).send('不支援的城市，請使用：' + Object.keys(cityMap).join('、'));
+  if (!cityCode) {
+    return res.status(400).send('❌ 不支援的城市，請使用：' + Object.keys(cityMap).join('、'));
+  }
 
   try {
     console.log('✅ Start processing');
-    console.log('📥 Query:', req.query);
+    console.log('🔍 Query:', req.query);
 
     const browser = await puppeteer.launch({
       headless: 'new',
@@ -31,15 +42,20 @@ app.get('/search', async (req, res) => {
     });
 
     const page = await browser.newPage();
-    const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
-    console.log('🔍 Search URL:', searchUrl);
+    await page.goto('https://www.sex100.co/', { waitUntil: 'domcontentloaded', timeout: 0 });
 
-    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
+    // 模擬輸入人名 + 按下搜尋按鈕
+    await page.type('input[name="kw"]', keyword);
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'networkidle2' }),
+      page.click('button.index_search'),
+    ]);
 
+    // 進入搜尋結果頁面後擷取資料
     const html = await page.content();
     const $ = cheerio.load(html);
-
     const profileLink = $('a.w-100.d-block').attr('href');
+
     console.log('🔗 profileLink:', profileLink);
 
     if (!profileLink) {
@@ -47,9 +63,8 @@ app.get('/search', async (req, res) => {
       return res.status(404).send('找不到符合的人員頁面');
     }
 
-    const profileUrl = `https://www.sex100.co/${profileLink}`;
-    console.log('📄 Profile URL:', profileUrl);
-    await page.goto(profileUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
+    const profileUrl = `https://www.sex100.co${profileLink}`;
+    await page.goto(profileUrl, { waitUntil: 'networkidle2' });
 
     const profileHTML = await page.content();
     const $$ = cheerio.load(profileHTML);
@@ -61,11 +76,10 @@ app.get('/search', async (req, res) => {
 
     await browser.close();
 
-    const summary = `✅ 姓名：${name || 'N/A'}\n📍服務區域：${area || 'N/A'}\n💆‍♀️服務項目：${service || 'N/A'}\n💰價格：${price || 'N/A'}\n🔗連結：${profileUrl}`;
+    const summary = `✅ 姓名：${name || '無資料'}\n📍服務區域：${area || '無資料'}\n💆‍♀️服務項目：${service || '無資料'}\n💰價格：${price || '無資料'}\n🔗連結：${profileUrl}`;
     res.send(summary);
-
   } catch (error) {
-    console.error('❌ Puppeteer Error:', error);
+    console.error('🚨 Puppeteer Error:', error);
     res.status(500).send('Server error');
   }
 });

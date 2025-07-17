@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 城市名稱對應對方網站的 city 編號
 const cityMap = {
   '台北': 1,
   '新北': 2,
@@ -41,23 +42,18 @@ app.get('/search', async (req, res) => {
     });
 
     const page = await browser.newPage();
-    await page.goto('https://www.sex100.co/', { waitUntil: 'domcontentloaded', timeout: 0 });
 
-    // 🔤 模擬輸入關鍵字 + 點擊搜尋按鈕
-    await page.type('input[name="kw"]', keyword);
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle2' }),
-      page.click('button.index_search'),
-    ]);
+    // 🔎 直接前往搜尋結果頁
+    const searchUrl = `https://www.sex100.co/search.php?search=${encodeURIComponent(keyword)}&city=${cityCode}`;
+    console.log('🔗 Search URL:', searchUrl);
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 0 });
 
-    // 抓搜尋結果頁內容
     const searchHtml = await page.content();
     const $ = cheerio.load(searchHtml);
 
-    const profileLink =
-      $('.col-6.col-md-4.col-xl-3 a').first().attr('href') ||
-      $('.item_card a').first().attr('href');
-
+    // 嘗試抓第一筆 profile 的連結
+    const profileLink = $('.col-6.col-md-4.col-xl-3 a').first().attr('href')
+                     || $('.item_card a').first().attr('href');
     console.log('🔗 profileLink:', profileLink);
 
     if (!profileLink) {
@@ -68,10 +64,8 @@ app.get('/search', async (req, res) => {
     const profileUrl = `https://www.sex100.co${profileLink}`;
     await page.goto(profileUrl, { waitUntil: 'networkidle2', timeout: 0 });
 
-    await page.screenshot({ path: 'search_result.png' });
-
-    const profileHtml = await page.content();
-    const $$ = cheerio.load(profileHtml);
+    const profileHTML = await page.content();
+    const $$ = cheerio.load(profileHTML);
 
     const name = $$('h1').first().text().trim();
     const area = $$('.badge.bg-primary').text().trim();

@@ -1,11 +1,11 @@
-const puppeteer = require('puppeteer'); // ✅ 載入 npm 套件
+const puppeteer = require('puppeteer');
 const cheerio = require("cheerio");
 
 module.exports = async function runPuppeteer(url) {
   const browser = await puppeteer.launch({
-  headless: "new",
-  args: ["--no-sandbox", "--disable-setuid-sandbox"]
-});
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  });
 
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: "networkidle2" });
@@ -27,11 +27,5 @@ module.exports = async function runPuppeteer(url) {
 
   await browser.close();
 
-  return {
-    name,
-    area,
-    price,
-    services,
-    images
-  };
+  return { name, area, price, services, images };
 };
